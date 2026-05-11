@@ -67,7 +67,13 @@ function Fan({
 
 function SceneLabel({ position, children }: { position: Vec3; children: string }) {
   return (
-    <Html center position={position} transform distanceFactor={6}>
+    <Html
+      center
+      distanceFactor={6}
+      position={position}
+      transform
+      zIndexRange={[1, 0]}
+    >
       <span className="scene-label">{children}</span>
     </Html>
   )
