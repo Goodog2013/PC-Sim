@@ -5,7 +5,7 @@ MVP игры-симулятора сборки ПК. Игрок выбирает
 ## Возможности
 
 - 3D-сцена корпуса ПК на `@react-three/fiber` и `@react-three/drei`.
-- Каталог вымышленных комплектующих: корпус, плата, CPU, GPU, RAM, SSD, PSU и кулер.
+- Каталог комплектующих с реальными названиями моделей: корпус, плата, CPU, GPU, RAM, SSD, PSU и кулер.
 - Проверка сокетов, RAM-типа, форм-фактора, мощности PSU, длины GPU, кулера и storage-слота.
 - Состояния питания: `assembling`, `checking`, `post_error`, `bios`, `booting`, `os_running`, `shutdown`.
 - Виртуальная ОС с окнами `Benchmark`, `System Info` и командой `Shutdown`.
