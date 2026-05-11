@@ -373,6 +373,12 @@
   background: rgba(255, 255, 255, 0.055);
 }
 
+.filter-grid select option,
+.settings-view select option {
+  color: #f2f7f5;
+  background: #101923;
+}
+
 .search-field input:focus,
 .filter-grid select:focus {
   border-color: rgba(83, 240, 169, 0.7);
@@ -970,6 +976,413 @@ button:disabled {
   color: var(--text-strong);
 }
 
+.virtual-os {
+  grid-template-rows: auto 1fr auto;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(83, 240, 169, 0.12), transparent 28%),
+    radial-gradient(circle at 80% 28%, rgba(122, 211, 255, 0.12), transparent 26%),
+    linear-gradient(135deg, #07110f, #0c1117 58%, #05080c);
+}
+
+.os-topbar {
+  min-height: 46px;
+  color: var(--text-strong);
+}
+
+.desktop-icons {
+  padding: 28px;
+  grid-template-columns: repeat(4, 112px);
+  grid-auto-rows: 118px;
+}
+
+.desktop-icons button,
+.start-app-grid button {
+  border-color: rgba(122, 211, 255, 0.22);
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.desktop-icons button:focus-visible,
+.start-app-grid button:focus-visible,
+.hotbar button:focus-visible,
+.start-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.desktop-icon {
+  position: relative;
+  overflow: hidden;
+}
+
+.files-icon {
+  background:
+    linear-gradient(180deg, #f7b267 0 13px, #f4d35e 13px),
+    #f4d35e;
+}
+
+.terminal-icon {
+  background:
+    linear-gradient(90deg, #53f0a9 0 10px, transparent 10px),
+    #13202a;
+}
+
+.terminal-icon::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 8px;
+  bottom: 11px;
+  height: 3px;
+  background: #53f0a9;
+}
+
+.tasks-icon {
+  background:
+    linear-gradient(90deg, transparent 0 8px, rgba(255, 255, 255, 0.38) 8px 13px, transparent 13px 18px, rgba(255, 255, 255, 0.38) 18px 23px, transparent 23px),
+    #7ad3ff;
+}
+
+.notes-icon {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 9px, rgba(255, 255, 255, 0.32) 9px 11px),
+    #f7b267;
+}
+
+.calculator-icon {
+  background:
+    linear-gradient(90deg, transparent 47%, rgba(255, 255, 255, 0.28) 47% 53%, transparent 53%),
+    linear-gradient(180deg, transparent 47%, rgba(255, 255, 255, 0.28) 47% 53%, transparent 53%),
+    #38bdf8;
+}
+
+.settings-icon {
+  background:
+    radial-gradient(circle at center, transparent 0 9px, rgba(255, 255, 255, 0.42) 10px 13px, transparent 14px),
+    #8b5cf6;
+}
+
+.os-window {
+  top: 46%;
+  width: min(720px, calc(100% - 40px));
+  border-color: rgba(122, 211, 255, 0.32);
+  background: rgba(14, 22, 30, 0.97);
+}
+
+.os-window-terminal {
+  width: min(760px, calc(100% - 40px));
+}
+
+.os-window-files,
+.os-window-tasks,
+.os-window-settings {
+  width: min(620px, calc(100% - 40px));
+}
+
+.benchmark-breakdown {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.benchmark-breakdown span,
+.drive-card span,
+.notes-view span {
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 12px;
+}
+
+.files-view,
+.tasks-view,
+.notes-view,
+.calculator-view,
+.settings-view {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.files-view {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.drive-card {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  display: grid;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.drive-card strong {
+  color: var(--text-strong);
+}
+
+.drive-bar,
+.metric-bar {
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.drive-bar span,
+.metric-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.files-view button {
+  min-height: 68px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+
+.folder-icon {
+  width: 34px;
+  height: 26px;
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, #f7b267 0 9px, #f4d35e 9px),
+    #f4d35e;
+}
+
+.terminal-view {
+  display: grid;
+  grid-template-rows: minmax(260px, 1fr) auto;
+  background: #05080c;
+}
+
+.terminal-output {
+  padding: 14px;
+  overflow: auto;
+  font-family: var(--mono);
+}
+
+.terminal-output p {
+  margin: 0 0 6px;
+  color: #b7f7dc;
+}
+
+.terminal-view form {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  font-family: var(--mono);
+}
+
+.terminal-view input,
+.notes-view textarea,
+.calculator-view input,
+.settings-view select {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.terminal-view input {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  outline: none;
+}
+
+.tasks-view div {
+  display: grid;
+  grid-template-columns: 70px 52px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.tasks-view span {
+  color: var(--text-muted);
+}
+
+.tasks-view strong {
+  color: var(--text-strong);
+}
+
+.notes-view textarea {
+  min-height: 260px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.calculator-view input {
+  min-height: 44px;
+  padding: 0 12px;
+  font-family: var(--mono);
+}
+
+.calculator-view > strong {
+  color: var(--accent);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.calculator-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calculator-buttons button,
+.settings-view button {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.settings-view label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.settings-view select {
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+.start-menu {
+  position: absolute;
+  left: 14px;
+  bottom: 60px;
+  z-index: 5;
+  width: min(420px, calc(100% - 28px));
+  border: 1px solid rgba(122, 211, 255, 0.35);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(12, 19, 27, 0.98);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+}
+
+.start-menu-header {
+  padding: 14px;
+  display: grid;
+  gap: 3px;
+  border-bottom: 1px solid var(--border);
+}
+
+.start-menu-header strong {
+  color: var(--text-strong);
+}
+
+.start-menu-header span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.start-app-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.start-app-grid button {
+  min-height: 64px;
+  border-radius: 7px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.start-menu-actions {
+  border-top: 1px solid var(--border);
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.start-menu-actions button,
+.start-button,
+.hotbar button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.start-menu-actions button {
+  min-height: 38px;
+  flex: 1;
+}
+
+.os-taskbar {
+  min-height: 54px;
+  padding: 7px 10px;
+}
+
+.start-button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-weight: 800;
+}
+
+.start-button.active,
+.hotbar button.active {
+  border-color: rgba(83, 240, 169, 0.7);
+  background: rgba(83, 240, 169, 0.12);
+}
+
+.hotbar {
+  min-width: 0;
+  margin-right: auto;
+  display: flex;
+  gap: 7px;
+  overflow: auto;
+}
+
+.hotbar button {
+  min-height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.taskbar-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.system-tray {
+  display: flex;
+  gap: 8px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
 @media (max-width: 1180px) {
   .workspace {
     grid-template-columns: 280px minmax(360px, 1fr);
@@ -1015,6 +1428,21 @@ button:disabled {
   .desktop-icons {
     grid-template-columns: repeat(2, 110px);
     padding: 18px;
+  }
+
+  .os-window {
+    top: 48%;
+    width: calc(100% - 22px);
+  }
+
+  .hotbar button span:last-child,
+  .system-tray {
+    display: none;
+  }
+
+  .files-view,
+  .start-app-grid {
+    grid-template-columns: 1fr;
   }
 
   .system-info-view div,
