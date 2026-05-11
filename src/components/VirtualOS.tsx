@@ -11,11 +11,14 @@ type AppId =
   | 'benchmark'
   | 'info'
   | 'files'
+  | 'games'
   | 'terminal'
   | 'tasks'
   | 'notes'
   | 'calculator'
   | 'settings'
+
+type GameQuality = 'low' | 'medium' | 'high' | 'ultra'
 
 interface OsApp {
   id: AppId
@@ -24,16 +27,73 @@ interface OsApp {
   pinned?: boolean
 }
 
+interface MiniGame {
+  id: string
+  title: string
+  genre: string
+  demand: number
+  baseFps: number
+  description: string
+  sceneClass: string
+}
+
 const osApps: OsApp[] = [
   { id: 'benchmark', title: 'Benchmark', iconClass: 'benchmark-icon', pinned: true },
   { id: 'info', title: 'System Info', iconClass: 'info-icon', pinned: true },
   { id: 'files', title: 'Files', iconClass: 'files-icon', pinned: true },
+  { id: 'games', title: 'Games', iconClass: 'games-icon', pinned: true },
   { id: 'terminal', title: 'Terminal', iconClass: 'terminal-icon', pinned: true },
   { id: 'tasks', title: 'Task Monitor', iconClass: 'tasks-icon' },
   { id: 'notes', title: 'Notes', iconClass: 'notes-icon' },
   { id: 'calculator', title: 'Calculator', iconClass: 'calculator-icon' },
   { id: 'settings', title: 'Settings', iconClass: 'settings-icon' },
 ]
+
+const miniGames: MiniGame[] = [
+  {
+    id: 'neon-runner',
+    title: 'Neon Runner',
+    genre: 'Arcade racer',
+    demand: 300,
+    baseFps: 92,
+    description: 'Simple lane runner with glowing traffic blocks.',
+    sceneClass: 'runner-scene',
+  },
+  {
+    id: 'block-stack',
+    title: 'Block Stack',
+    genre: 'Puzzle',
+    demand: 180,
+    baseFps: 120,
+    description: 'Lightweight falling blocks benchmark for CPU and RAM.',
+    sceneClass: 'blocks-scene',
+  },
+  {
+    id: 'space-dots',
+    title: 'Space Dots',
+    genre: 'Shooter',
+    demand: 420,
+    baseFps: 78,
+    description: 'Particle-heavy space shooter simulation for the GPU.',
+    sceneClass: 'space-scene',
+  },
+  {
+    id: 'thermal-rally',
+    title: 'Thermal Rally',
+    genre: 'Driving sim',
+    demand: 540,
+    baseFps: 68,
+    description: 'Heavier test with heat haze, road motion and AI cars.',
+    sceneClass: 'rally-scene',
+  },
+]
+
+const qualityFactors: Record<GameQuality, number> = {
+  low: 1.32,
+  medium: 1,
+  high: 0.76,
+  ultra: 0.58,
+}
 
 function calculatorResult(expression: string) {
   const trimmed = expression.trim()
@@ -54,11 +114,37 @@ function calculatorResult(expression: string) {
   }
 }
 
+function estimateGameFps(
+  benchmarkScore: number,
+  game: MiniGame,
+  quality: GameQuality,
+) {
+  const scoreRatio = Math.max(0.25, benchmarkScore / game.demand)
+  const average = Math.round(
+    Math.min(240, Math.max(18, game.baseFps * scoreRatio * qualityFactors[quality])),
+  )
+  const onePercentLow = Math.max(12, Math.round(average * 0.72))
+  const frameTime = Number((1000 / average).toFixed(1))
+  const status =
+    average >= 120
+      ? 'Excellent'
+      : average >= 75
+        ? 'Smooth'
+        : average >= 45
+          ? 'Playable'
+          : 'Heavy'
+
+  return { average, frameTime, onePercentLow, status }
+}
+
 export function VirtualOS() {
   const [activeApp, setActiveApp] = useState<AppId | null>(null)
   const [startOpen, setStartOpen] = useState(false)
   const [notes, setNotes] = useState(() => localStorage.getItem('pc-sim-notes') ?? '')
   const [expression, setExpression] = useState('128 + 64 / 2')
+  const [selectedGameId, setSelectedGameId] = useState(miniGames[0].id)
+  const [gameQuality, setGameQuality] = useState<GameQuality>('high')
+  const [gameRunning, setGameRunning] = useState(false)
   const [terminalInput, setTerminalInput] = useState('')
   const [terminalLines, setTerminalLines] = useState<string[]>([
     'PC Sim Terminal ready. Type help.',
@@ -76,6 +162,9 @@ export function VirtualOS() {
   const cpu = getInstalledPart(build, 'cpu')
   const gpu = getInstalledPart(build, 'gpu')
   const ram = getInstalledPart(build, 'ram')
+  const selectedGame =
+    miniGames.find((game) => game.id === selectedGameId) ?? miniGames[0]
+  const gameFps = estimateGameFps(benchmark.score, selectedGame, gameQuality)
   const powerDraw = installedParts.reduce(
     (total, { part }) => total + (part?.powerDraw ?? 0),
     0,
@@ -120,16 +209,23 @@ export function VirtualOS() {
 
     const response =
       command === 'help'
-        ? 'Commands: help, sysinfo, benchmark, power, apps, clear, shutdown'
+      ? 'Commands: help, sysinfo, benchmark, games, power, apps, clear, shutdown'
         : command === 'sysinfo'
           ? `${installedCount}/8 parts installed, CPU: ${cpu?.name ?? 'none'}, GPU: ${gpu?.name ?? 'none'}`
           : command === 'benchmark'
             ? `PC SIM MARK ${benchmark.score} (${benchmark.tier})`
-            : command === 'power'
-              ? `Estimated component draw: ${powerDraw}W`
-              : command === 'apps'
-                ? osApps.map((app) => app.title).join(', ')
-                : `Unknown command: ${command}`
+            : command === 'games'
+              ? miniGames
+                  .map((game) => {
+                    const fps = estimateGameFps(benchmark.score, game, gameQuality)
+                    return `${game.title}: ${fps.average} FPS`
+                  })
+                  .join(' | ')
+              : command === 'power'
+                ? `Estimated component draw: ${powerDraw}W`
+                : command === 'apps'
+                  ? osApps.map((app) => app.title).join(', ')
+                  : `Unknown command: ${command}`
 
     setTerminalLines((lines) => [...lines, `> ${terminalInput}`, response])
     setTerminalInput('')
@@ -175,12 +271,113 @@ export function VirtualOS() {
               <span style={{ width: `${Math.min(86, 32 + benchmark.score / 10)}%` }} />
             </div>
           </div>
+          <button onClick={() => openApp('games')} type="button">
+            <span className="folder-icon games-folder-icon" />
+            Games
+          </button>
           {['Benchmarks', 'Drivers', 'Screenshots', 'System Logs'].map((folder) => (
             <button key={folder} type="button">
               <span className="folder-icon" />
               {folder}
             </button>
           ))}
+        </div>
+      )
+    }
+
+    if (activeApp === 'games') {
+      return (
+        <div className="games-view">
+          <aside className="games-library">
+            <div className="games-folder-header">
+              <span className="folder-icon games-folder-icon" />
+              <div>
+                <strong>C:\Games</strong>
+                <small>{miniGames.length} installed games</small>
+              </div>
+            </div>
+            {miniGames.map((game) => {
+              const fps = estimateGameFps(benchmark.score, game, gameQuality)
+
+              return (
+                <button
+                  className={selectedGame.id === game.id ? 'active' : ''}
+                  key={game.id}
+                  onClick={() => {
+                    setSelectedGameId(game.id)
+                    setGameRunning(false)
+                  }}
+                  type="button"
+                >
+                  <span>{game.title}</span>
+                  <strong>{fps.average} FPS</strong>
+                </button>
+              )
+            })}
+          </aside>
+
+          <section className="game-preview">
+            <div className={`game-stage ${selectedGame.sceneClass} ${gameRunning ? 'running' : ''}`}>
+              <div className="game-hud">
+                <span>{selectedGame.title}</span>
+                <strong>{gameFps.average} FPS</strong>
+              </div>
+              <div className="game-sprite player-sprite" />
+              <div className="game-sprite enemy-sprite" />
+              <div className="game-sprite pickup-sprite" />
+            </div>
+
+            <div className="game-details">
+              <div>
+                <span className="eyebrow">{selectedGame.genre}</span>
+                <h3>{selectedGame.title}</h3>
+                <p>{selectedGame.description}</p>
+              </div>
+
+              <label>
+                Graphics preset
+                <select
+                  onChange={(event) => setGameQuality(event.target.value as GameQuality)}
+                  value={gameQuality}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="ultra">Ultra</option>
+                </select>
+              </label>
+
+              <div className="fps-panel">
+                <div>
+                  <small>Average</small>
+                  <strong>{gameFps.average}</strong>
+                  <span>FPS</span>
+                </div>
+                <div>
+                  <small>1% Low</small>
+                  <strong>{gameFps.onePercentLow}</strong>
+                  <span>FPS</span>
+                </div>
+                <div>
+                  <small>Frame time</small>
+                  <strong>{gameFps.frameTime}</strong>
+                  <span>ms</span>
+                </div>
+                <div>
+                  <small>Status</small>
+                  <strong>{gameFps.status}</strong>
+                </div>
+              </div>
+
+              <button
+                className="game-run-button"
+                onClick={() => setGameRunning((running) => !running)}
+                type="button"
+              >
+                {gameRunning ? 'Stop simulation' : 'Run FPS simulation'}
+              </button>
+            </div>
+          </section>
         </div>
       )
     }

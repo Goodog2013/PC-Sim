@@ -1062,6 +1062,14 @@ button:disabled {
     #8b5cf6;
 }
 
+.games-icon {
+  background:
+    radial-gradient(circle at 28% 40%, rgba(255, 255, 255, 0.78) 0 4px, transparent 5px),
+    radial-gradient(circle at 72% 40%, rgba(255, 255, 255, 0.78) 0 4px, transparent 5px),
+    linear-gradient(90deg, transparent 39%, rgba(255, 255, 255, 0.34) 39% 46%, transparent 46% 54%, rgba(255, 255, 255, 0.34) 54% 61%, transparent 61%),
+    #53f0a9;
+}
+
 .os-window {
   top: 46%;
   width: min(720px, calc(100% - 40px));
@@ -1074,9 +1082,10 @@ button:disabled {
 }
 
 .os-window-files,
+.os-window-games,
 .os-window-tasks,
 .os-window-settings {
-  width: min(620px, calc(100% - 40px));
+  width: min(860px, calc(100% - 40px));
 }
 
 .benchmark-breakdown {
@@ -1161,6 +1170,315 @@ button:disabled {
   background:
     linear-gradient(180deg, #f7b267 0 9px, #f4d35e 9px),
     #f4d35e;
+}
+
+.games-folder-icon {
+  background:
+    linear-gradient(180deg, #53f0a9 0 9px, #183f34 9px),
+    #183f34;
+}
+
+.games-view {
+  min-height: 520px;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  background: rgba(6, 10, 15, 0.55);
+}
+
+.games-library {
+  border-right: 1px solid var(--border);
+  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.games-folder-header {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(83, 240, 169, 0.07);
+}
+
+.games-folder-header strong {
+  display: block;
+  color: var(--text-strong);
+}
+
+.games-folder-header small {
+  color: var(--text-muted);
+}
+
+.games-library button {
+  min-height: 58px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+
+.games-library button.active {
+  border-color: rgba(83, 240, 169, 0.7);
+  background: rgba(83, 240, 169, 0.1);
+}
+
+.games-library button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.games-library button strong {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.game-preview {
+  min-width: 0;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 14px;
+}
+
+.game-stage {
+  position: relative;
+  min-height: 350px;
+  border: 1px solid rgba(122, 211, 255, 0.28);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #070d13;
+}
+
+.game-stage::before,
+.game-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.72;
+}
+
+.runner-scene::before {
+  background:
+    linear-gradient(90deg, transparent 0 31%, rgba(83, 240, 169, 0.28) 31% 32%, transparent 32% 68%, rgba(83, 240, 169, 0.28) 68% 69%, transparent 69%),
+    repeating-linear-gradient(180deg, transparent 0 42px, rgba(255, 255, 255, 0.16) 42px 60px);
+  animation: road-scroll 1.1s linear infinite;
+}
+
+.blocks-scene::before {
+  background:
+    linear-gradient(90deg, rgba(122, 211, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(122, 211, 255, 0.12) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.space-scene::before {
+  background:
+    radial-gradient(circle at 18% 24%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 68% 18%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 42% 72%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 64%, #fff 0 1px, transparent 2px);
+  animation: stars-drift 2.6s linear infinite;
+}
+
+.rally-scene::before {
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(247, 178, 103, 0.24) 18% 20%, transparent 20% 80%, rgba(247, 178, 103, 0.24) 80% 82%, transparent 82%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0 34px, transparent 34px 82px),
+    linear-gradient(180deg, #172033, #111827);
+  animation: road-scroll 0.8s linear infinite;
+}
+
+.game-hud {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--mono);
+}
+
+.game-hud span,
+.game-hud strong {
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--text-strong);
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.game-hud strong {
+  color: var(--accent);
+}
+
+.game-sprite {
+  position: absolute;
+  z-index: 1;
+  border-radius: 6px;
+}
+
+.player-sprite {
+  left: 46%;
+  bottom: 34px;
+  width: 38px;
+  height: 54px;
+  background: var(--accent);
+  box-shadow: 0 0 22px rgba(83, 240, 169, 0.55);
+}
+
+.enemy-sprite {
+  right: 24%;
+  top: 34%;
+  width: 46px;
+  height: 46px;
+  background: var(--danger);
+}
+
+.pickup-sprite {
+  left: 22%;
+  top: 46%;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--warning);
+  box-shadow: 0 0 20px rgba(247, 178, 103, 0.5);
+}
+
+.game-stage.running .enemy-sprite {
+  animation: enemy-loop 1.2s linear infinite;
+}
+
+.game-stage.running .pickup-sprite {
+  animation: pickup-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.game-details {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.game-details h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 24px;
+}
+
+.game-details p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+}
+
+.game-details label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.game-details select {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0 10px;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.game-details select option {
+  color: #f2f7f5;
+  background: #101923;
+}
+
+.fps-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fps-panel div {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: grid;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fps-panel small {
+  color: var(--text-muted);
+}
+
+.fps-panel strong {
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.fps-panel span {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.game-run-button {
+  min-height: 44px;
+  border: 1px solid rgba(83, 240, 169, 0.55);
+  border-radius: 7px;
+  color: #04120c;
+  background: var(--accent);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+@keyframes road-scroll {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 120px;
+  }
+}
+
+@keyframes stars-drift {
+  from {
+    transform: translateY(-18px);
+  }
+  to {
+    transform: translateY(28px);
+  }
+}
+
+@keyframes enemy-loop {
+  from {
+    transform: translateY(-140px);
+  }
+  to {
+    transform: translateY(320px);
+  }
+}
+
+@keyframes pickup-pulse {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1.14);
+  }
 }
 
 .terminal-view {
@@ -1441,8 +1759,23 @@ button:disabled {
   }
 
   .files-view,
+  .games-view,
+  .game-preview,
   .start-app-grid {
     grid-template-columns: 1fr;
+  }
+
+  .games-view {
+    min-height: 0;
+  }
+
+  .games-library {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .game-stage {
+    min-height: 270px;
   }
 
   .system-info-view div,

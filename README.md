@@ -9,7 +9,7 @@ MVP игры-симулятора сборки ПК. Игрок выбирает
 - Поп-ап каталог с поиском, вкладками категорий, фильтрами, сортировкой и режимом совместимости с текущей сборкой.
 - Проверка сокетов, RAM-типа, форм-фактора, мощности PSU, длины GPU, кулера и storage-слота.
 - Состояния питания: `assembling`, `checking`, `post_error`, `bios`, `booting`, `os_running`, `shutdown`.
-- Виртуальная ОС с меню Пуск, хотбаром, окнами `Benchmark`, `System Info`, `Files`, `Terminal`, `Task Monitor`, `Notes`, `Calculator`, `Settings` и командой `Shutdown`.
+- Виртуальная ОС с меню Пуск, хотбаром, папкой `Games`, FPS-симуляцией от benchmark score, окнами `Benchmark`, `System Info`, `Files`, `Games`, `Terminal`, `Task Monitor`, `Notes`, `Calculator`, `Settings` и командой `Shutdown`.
 - Сохранение текущей сборки в `localStorage`.
 
 ## Стек
