@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getInstalledPart,
   partCategories,
@@ -35,6 +35,27 @@ interface MiniGame {
   baseFps: number
   description: string
   sceneClass: string
+}
+
+interface GameEntity {
+  x: number
+  y: number
+  width: number
+  height: number
+  vx: number
+  vy: number
+  type: 'enemy' | 'pickup' | 'bullet'
+}
+
+interface RuntimeGameState {
+  elapsed: number
+  lives: number
+  playerX: number
+  playerY: number
+  score: number
+  spawnTimer: number
+  shotTimer: number
+  entities: GameEntity[]
 }
 
 const osApps: OsApp[] = [
@@ -92,7 +113,7 @@ const qualityFactors: Record<GameQuality, number> = {
   low: 1.32,
   medium: 1,
   high: 0.76,
-  ultra: 0.58,
+  ultra: 0.42,
 }
 
 function calculatorResult(expression: string) {
@@ -119,11 +140,11 @@ function estimateGameFps(
   game: MiniGame,
   quality: GameQuality,
 ) {
-  const scoreRatio = Math.max(0.25, benchmarkScore / game.demand)
+  const scoreRatio = Math.max(0.02, benchmarkScore / game.demand)
   const average = Math.round(
-    Math.min(240, Math.max(18, game.baseFps * scoreRatio * qualityFactors[quality])),
+    Math.min(144, Math.max(1, game.baseFps * scoreRatio * qualityFactors[quality])),
   )
-  const onePercentLow = Math.max(12, Math.round(average * 0.72))
+  const onePercentLow = Math.max(1, Math.round(average * 0.72))
   const frameTime = Number((1000 / average).toFixed(1))
   const status =
     average >= 120
@@ -135,6 +156,382 @@ function estimateGameFps(
           : 'Heavy'
 
   return { average, frameTime, onePercentLow, status }
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function collides(a: GameEntity, b: GameEntity) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  )
+}
+
+function createRuntimeState(): RuntimeGameState {
+  return {
+    elapsed: 0,
+    entities: [],
+    lives: 3,
+    playerX: 300,
+    playerY: 284,
+    score: 0,
+    shotTimer: 0,
+    spawnTimer: 0,
+  }
+}
+
+function drawCanvasBackground(
+  context: CanvasRenderingContext2D,
+  game: MiniGame,
+  width: number,
+  height: number,
+  elapsed: number,
+) {
+  context.fillStyle = '#05080c'
+  context.fillRect(0, 0, width, height)
+
+  if (game.id === 'space-dots') {
+    context.fillStyle = '#e5f8f3'
+    for (let index = 0; index < 46; index += 1) {
+      const x = (index * 83) % width
+      const y = (index * 47 + elapsed * 26) % height
+      context.globalAlpha = 0.35 + (index % 4) * 0.12
+      context.fillRect(x, y, 2, 2)
+    }
+    context.globalAlpha = 1
+    return
+  }
+
+  if (game.id === 'block-stack') {
+    context.strokeStyle = 'rgba(122, 211, 255, 0.13)'
+    context.lineWidth = 1
+    for (let x = 0; x < width; x += 32) {
+      context.beginPath()
+      context.moveTo(x, 0)
+      context.lineTo(x, height)
+      context.stroke()
+    }
+    for (let y = 0; y < height; y += 32) {
+      context.beginPath()
+      context.moveTo(0, y)
+      context.lineTo(width, y)
+      context.stroke()
+    }
+    return
+  }
+
+  const roadOffset = (elapsed * (game.id === 'thermal-rally' ? 220 : 160)) % 80
+  context.fillStyle = game.id === 'thermal-rally' ? '#172033' : '#08141a'
+  context.fillRect(width * 0.2, 0, width * 0.6, height)
+  context.strokeStyle = game.id === 'thermal-rally' ? '#f7b267' : '#53f0a9'
+  context.lineWidth = 3
+  context.setLineDash([22, 28])
+  context.lineDashOffset = -roadOffset
+  context.beginPath()
+  context.moveTo(width * 0.5, 0)
+  context.lineTo(width * 0.5, height)
+  context.stroke()
+  context.setLineDash([])
+}
+
+function drawEntity(context: CanvasRenderingContext2D, entity: GameEntity) {
+  context.fillStyle =
+    entity.type === 'pickup'
+      ? '#f7b267'
+      : entity.type === 'bullet'
+        ? '#80ffdb'
+        : '#ff6363'
+  context.fillRect(entity.x, entity.y, entity.width, entity.height)
+}
+
+function drawPlayableFrame(
+  canvas: HTMLCanvasElement,
+  game: MiniGame,
+  state: RuntimeGameState,
+  targetFps: number,
+  measuredFps: number,
+  running: boolean,
+) {
+  const context = canvas.getContext('2d')
+
+  if (!context) {
+    return
+  }
+
+  const { height, width } = canvas
+  drawCanvasBackground(context, game, width, height, state.elapsed)
+
+  state.entities.forEach((entity) => drawEntity(context, entity))
+
+  context.fillStyle = game.id === 'space-dots' ? '#53f0a9' : '#7ad3ff'
+  if (game.id === 'space-dots') {
+    context.beginPath()
+    context.moveTo(state.playerX + 20, state.playerY)
+    context.lineTo(state.playerX + 40, state.playerY + 38)
+    context.lineTo(state.playerX, state.playerY + 38)
+    context.closePath()
+    context.fill()
+  } else {
+    context.fillRect(state.playerX, state.playerY, 42, 46)
+  }
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.58)'
+  context.fillRect(10, 10, 270, 68)
+  context.fillStyle = '#f2f7f5'
+  context.font = '14px Consolas, monospace'
+  context.fillText(`${game.title}`, 22, 34)
+  context.fillText(`Score ${state.score}  Lives ${state.lives}`, 22, 58)
+  context.fillStyle = '#53f0a9'
+  context.fillText(`Target ${targetFps} FPS / Draw ${measuredFps} FPS`, 300, 34)
+
+  if (!running) {
+    context.fillStyle = 'rgba(0, 0, 0, 0.62)'
+    context.fillRect(0, 0, width, height)
+    context.fillStyle = '#f2f7f5'
+    context.font = '22px system-ui, sans-serif'
+    context.fillText('Press Run to play', width / 2 - 82, height / 2 - 10)
+    context.font = '13px Consolas, monospace'
+    context.fillText('WASD / arrows to move, Space to shoot', width / 2 - 142, height / 2 + 18)
+  }
+}
+
+function updatePlayableState(
+  state: RuntimeGameState,
+  game: MiniGame,
+  delta: number,
+  keys: Set<string>,
+) {
+  if (state.lives <= 0) {
+    if (keys.has('r')) {
+      Object.assign(state, createRuntimeState())
+    }
+    return
+  }
+
+  const speed = game.id === 'space-dots' ? 230 : 260
+  const left = keys.has('arrowleft') || keys.has('a')
+  const right = keys.has('arrowright') || keys.has('d')
+  const up = keys.has('arrowup') || keys.has('w')
+  const down = keys.has('arrowdown') || keys.has('s')
+
+  state.elapsed += delta
+  state.shotTimer -= delta
+  state.spawnTimer -= delta
+  state.playerX = clamp(state.playerX + (right ? speed * delta : 0) - (left ? speed * delta : 0), 14, 584)
+  state.playerY = clamp(state.playerY + (down ? speed * delta : 0) - (up ? speed * delta : 0), 42, 308)
+
+  if (game.id === 'space-dots' && keys.has(' ') && state.shotTimer <= 0) {
+    state.entities.push({
+      height: 16,
+      type: 'bullet',
+      vx: 0,
+      vy: -330,
+      width: 5,
+      x: state.playerX + 18,
+      y: state.playerY - 12,
+    })
+    state.shotTimer = 0.22
+  }
+
+  if (state.spawnTimer <= 0) {
+    const lane = 80 + ((state.score * 71 + Math.floor(state.elapsed * 100)) % 470)
+    const isPickup = game.id !== 'space-dots' && state.score % 5 === 4
+    const size = game.id === 'block-stack' ? 30 : game.id === 'thermal-rally' ? 38 : 32
+
+    state.entities.push({
+      height: size,
+      type: isPickup ? 'pickup' : 'enemy',
+      vx: game.id === 'space-dots' ? Math.sin(state.elapsed * 2) * 30 : 0,
+      vy: game.id === 'block-stack' ? 105 : game.id === 'thermal-rally' ? 175 : 135,
+      width: size,
+      x: lane,
+      y: -size,
+    })
+    state.spawnTimer = game.id === 'block-stack' ? 0.7 : game.id === 'thermal-rally' ? 0.5 : 0.62
+  }
+
+  const player: GameEntity = {
+    height: 42,
+    type: 'enemy',
+    vx: 0,
+    vy: 0,
+    width: 42,
+    x: state.playerX,
+    y: state.playerY,
+  }
+
+  state.entities.forEach((entity) => {
+    entity.x += entity.vx * delta
+    entity.y += entity.vy * delta
+  })
+
+  state.entities = state.entities.filter((entity) => {
+    if (entity.type === 'bullet') {
+      const hit = state.entities.find(
+        (target) => target.type === 'enemy' && collides(entity, target),
+      )
+
+      if (hit) {
+        hit.y = 9999
+        state.score += 3
+        return false
+      }
+
+      return entity.y > -30
+    }
+
+    if (collides(player, entity)) {
+      if (game.id === 'block-stack' || entity.type === 'pickup') {
+        state.score += entity.type === 'pickup' ? 5 : 1
+      } else {
+        state.lives -= 1
+      }
+      return false
+    }
+
+    if (entity.y > 390) {
+      if (game.id === 'block-stack' && entity.type === 'enemy') {
+        state.lives -= 1
+      }
+      if (game.id !== 'block-stack' && entity.type === 'enemy') {
+        state.score += 1
+      }
+      return false
+    }
+
+    return entity.y < 9999
+  })
+}
+
+function PlayableGame({
+  game,
+  running,
+  targetFps,
+}: {
+  game: MiniGame
+  running: boolean
+  targetFps: number
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const keysRef = useRef(new Set<string>())
+  const measuredFpsRef = useRef(0)
+  const stateRef = useRef(createRuntimeState())
+  const [measuredFps, setMeasuredFps] = useState(0)
+
+  useEffect(() => {
+    stateRef.current = createRuntimeState()
+  }, [game.id])
+
+  useEffect(() => {
+    if (running) {
+      canvasRef.current?.focus()
+    }
+  }, [running])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase()
+
+      if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'w', 'a', 's', 'd', 'r'].includes(key)) {
+        event.preventDefault()
+        keysRef.current.add(key)
+      }
+    }
+    const handleKeyUp = (event: KeyboardEvent) => {
+      keysRef.current.delete(event.key.toLowerCase())
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+
+    if (!canvas) {
+      return undefined
+    }
+
+    let animationFrame = 0
+    let lastFrame = performance.now()
+    let lastFpsSample = performance.now()
+    let renderedFrames = 0
+    const safeTargetFps = Math.max(1, targetFps)
+    const frameInterval = 1000 / safeTargetFps
+
+    const loop = (now: number) => {
+      const elapsed = now - lastFrame
+
+      if (elapsed >= frameInterval) {
+        const delta = Math.min(1, elapsed / 1000)
+        lastFrame = now - (elapsed % frameInterval)
+
+        if (running) {
+          updatePlayableState(stateRef.current, game, delta, keysRef.current)
+        }
+
+        renderedFrames += 1
+        drawPlayableFrame(
+          canvas,
+          game,
+          stateRef.current,
+          safeTargetFps,
+          measuredFpsRef.current,
+          running,
+        )
+      }
+
+      if (now - lastFpsSample >= 1000) {
+        measuredFpsRef.current = renderedFrames
+        setMeasuredFps(renderedFrames)
+        renderedFrames = 0
+        lastFpsSample = now
+      }
+
+      animationFrame = requestAnimationFrame(loop)
+    }
+
+    drawPlayableFrame(
+      canvas,
+      game,
+      stateRef.current,
+      safeTargetFps,
+      measuredFpsRef.current,
+      running,
+    )
+    animationFrame = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(animationFrame)
+  }, [game, running, targetFps])
+
+  return (
+    <div className="playable-game">
+      <canvas
+        aria-label={`${game.title} playable canvas`}
+        height={360}
+        onClick={() => canvasRef.current?.focus()}
+        ref={canvasRef}
+        tabIndex={0}
+        width={640}
+      />
+      <div className="playable-help">
+        <span>WASD / arrows: move</span>
+        <span>Space: shoot</span>
+        <span>R: restart after game over</span>
+      </div>
+      <div className="playable-meter">
+        <span>Target render FPS: {targetFps}</span>
+        <span>Actual drawn FPS: {measuredFps}</span>
+      </div>
+    </div>
+  )
 }
 
 export function VirtualOS() {
@@ -317,15 +714,11 @@ export function VirtualOS() {
           </aside>
 
           <section className="game-preview">
-            <div className={`game-stage ${selectedGame.sceneClass} ${gameRunning ? 'running' : ''}`}>
-              <div className="game-hud">
-                <span>{selectedGame.title}</span>
-                <strong>{gameFps.average} FPS</strong>
-              </div>
-              <div className="game-sprite player-sprite" />
-              <div className="game-sprite enemy-sprite" />
-              <div className="game-sprite pickup-sprite" />
-            </div>
+            <PlayableGame
+              game={selectedGame}
+              running={gameRunning}
+              targetFps={gameFps.average}
+            />
 
             <div className="game-details">
               <div>
@@ -374,7 +767,7 @@ export function VirtualOS() {
                 onClick={() => setGameRunning((running) => !running)}
                 type="button"
               >
-                {gameRunning ? 'Stop simulation' : 'Run FPS simulation'}
+                {gameRunning ? 'Stop game' : 'Play game'}
               </button>
             </div>
           </section>

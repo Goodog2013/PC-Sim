@@ -1252,6 +1252,54 @@ button:disabled {
   gap: 14px;
 }
 
+.playable-game {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.playable-game canvas {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(122, 211, 255, 0.28);
+  border-radius: 8px;
+  display: block;
+  background: #05080c;
+  image-rendering: pixelated;
+}
+
+.playable-game canvas:focus {
+  border-color: rgba(83, 240, 169, 0.72);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(83, 240, 169, 0.18);
+}
+
+.playable-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.playable-help span,
+.playable-meter span {
+  border-radius: 6px;
+  padding: 4px 7px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.045);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.playable-meter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.playable-meter span:first-child {
+  color: var(--accent);
+}
+
 .game-stage {
   position: relative;
   min-height: 350px;
